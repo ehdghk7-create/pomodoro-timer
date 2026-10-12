@@ -3,34 +3,37 @@
   --text: #2B2F2A;
   --muted: #7A7E76;
   --panel: #FFFFFF;
+  --field: #F5F2EA;
   --line: #E3DDCF;
   --cream: #EEE6D3;
   --cream-hi: #F8F3E8;
   --cream-lo: #D8CDB3;
   --face: #FCFBF7;
   --green: #1F5F3B;
-  --green-hi: #2C7A4E;
   --orange: #F2B45C;
   --orange-lo: #D9963B;
   --sector: var(--green);
+  --lamp-on: #4BE08A;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #171916;
+    --bg: #161815;
     --text: #ECEAE3;
     --muted: #9EA197;
-    --panel: #222520;
-    --line: #34382F;
+    --panel: #23261F;
+    --field: #1A1C18;
+    --line: #363A31;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #171916;
+  --bg: #161815;
   --text: #ECEAE3;
   --muted: #9EA197;
-  --panel: #222520;
-  --line: #34382F;
+  --panel: #23261F;
+  --field: #1A1C18;
+  --line: #363A31;
 }
-[data-mode="short"], [data-mode="long"] { --sector: #3F7F8C; }
+[data-mode="short"], [data-mode="long"] { --sector: #3F7F8C; --lamp-on: #5ADCEB; }
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -40,43 +43,23 @@ body {
   color: var(--text);
   font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
   -webkit-tap-highlight-color: transparent;
+  overflow: hidden;
 }
 button { font: inherit; color: inherit; }
 
-.app {
-  min-height: 100%;
-  max-width: 480px;
-  margin: 0 auto;
-  padding: max(16px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 18px;
+/* ---------- stage: just the clock ---------- */
+.stage {
+  height: 100vh;
+  height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
 }
-
-/* mode tabs */
-.modes {
-  display: flex;
-  gap: 4px;
-  padding: 4px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 999px;
+.clock-wrap {
+  width: min(calc(100vw - 32px), calc(100vh - 48px), 560px);
+  width: min(calc(100vw - 32px), calc(100dvh - 48px), 560px);
+  container-type: inline-size;
 }
-.mode {
-  border: 0;
-  background: transparent;
-  padding: 8px 14px;
-  border-radius: 999px;
-  font-size: 14px;
-  color: var(--muted);
-  cursor: pointer;
-}
-.mode.active { background: var(--sector); color: #fff; }
-
-/* clock body */
-.clock-slot { width: 100%; display: flex; flex-direction: column; align-items: center; }
-.clock-wrap { width: min(100%, 58vh, 400px); }
 .clock {
   position: relative;
   aspect-ratio: 1;
@@ -87,24 +70,82 @@ button { font: inherit; color: inherit; }
   box-shadow:
     inset 0 2px 2px rgba(255,255,255,.8),
     inset 0 -4px 8px rgba(0,0,0,.08),
-    0 18px 30px -12px rgba(60,45,20,.35),
-    0 4px 8px rgba(60,45,20,.12);
+    0 18px 30px -12px rgba(0,0,0,.35),
+    0 4px 8px rgba(0,0,0,.12);
 }
-.deco-top {
-  position: absolute; top: -2.2%; left: 30%; width: 30%; height: 3.4%;
-  background: var(--green); border-radius: 6px 6px 2px 2px;
-}
-.deco-side {
-  position: absolute; top: -1.6%; right: 9%; width: 9%; height: 2.6%;
-  background: var(--orange); border-radius: 6px 6px 2px 2px;
-}
-.brand {
-  position: absolute; top: 4.2%; left: 6%;
-  font-weight: 800; font-size: clamp(10px, 3.8cqw, 18px); letter-spacing: -.02em;
-  color: var(--green);
-}
-.clock-wrap { container-type: inline-size; }
 
+/* ---------- indicator lamp, recessed into the top bezel ---------- */
+.lamp {
+  position: absolute;
+  top: 2.3%;
+  left: 50%;
+  width: 16%;
+  height: 3%;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  padding: 0.45%;
+  background: linear-gradient(180deg, #CFC4A9, #EFE7D5);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.35), 0 1px 0 rgba(255,255,255,.7);
+}
+.lamp-glass {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  position: relative;
+  background: linear-gradient(180deg, #8E9787, #B9C0B1);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.35);
+  transition: background .4s, box-shadow .4s;
+}
+/* glass highlight */
+.lamp-glass::after {
+  content: "";
+  position: absolute;
+  left: 12%; right: 12%; top: 12%;
+  height: 32%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255,255,255,.75), rgba(255,255,255,0));
+}
+[data-lamp="run"] .lamp-glass {
+  background: radial-gradient(ellipse at 50% 60%, #fff 0%, var(--lamp-on) 45%, color-mix(in srgb, var(--lamp-on) 70%, #000) 100%);
+  box-shadow: 0 0 6px 1px var(--lamp-on), 0 0 18px 3px color-mix(in srgb, var(--lamp-on) 55%, transparent);
+  animation: breathe 3s ease-in-out infinite;
+}
+[data-lamp="pause"] .lamp-glass {
+  --lamp-on: #FFB547;
+  background: radial-gradient(ellipse at 50% 60%, #fff 0%, var(--lamp-on) 45%, #B9741B 100%);
+  box-shadow: 0 0 6px 1px var(--lamp-on), 0 0 16px 2px rgba(255,181,71,.5);
+  animation: pulse 2s ease-in-out infinite;
+}
+[data-lamp="alarm"] .lamp-glass {
+  --lamp-on: #FF7A3D;
+  background: radial-gradient(ellipse at 50% 60%, #fff 0%, var(--lamp-on) 45%, #B23A0E 100%);
+  box-shadow: 0 0 8px 2px var(--lamp-on), 0 0 26px 6px rgba(255,122,61,.6);
+  animation: blink .5s steps(1) infinite;
+}
+@keyframes breathe { 50% { filter: brightness(.82); } }
+@keyframes pulse { 50% { opacity: .35; } }
+@keyframes blink { 50% { opacity: .15; } }
+
+/* ---------- brand = settings button ---------- */
+.brand {
+  position: absolute;
+  top: 3.2%;
+  left: 5%;
+  padding: .6cqw 1.4cqw;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  font-weight: 800;
+  font-size: max(11px, 3.8cqw);
+  letter-spacing: -.02em;
+  color: var(--green);
+  cursor: pointer;
+  transition: background .2s;
+}
+.brand:hover, .brand:focus-visible { background: rgba(31,95,59,.1); outline: none; }
+
+/* ---------- dial ---------- */
 .dial {
   display: block; width: 100%; height: 100%;
   touch-action: none; user-select: none; -webkit-user-select: none;
@@ -119,13 +160,9 @@ button { font: inherit; color: inherit; }
 .labels text {
   fill: var(--green); font-size: 15px; font-weight: 500;
   dominant-baseline: central; text-anchor: middle;
-  font-family: "Pretendard", system-ui, sans-serif;
 }
 .motto { fill: var(--green); font-size: 17px; font-weight: 600; letter-spacing: -.01em; }
-.digital {
-  fill: var(--green); font-size: 15px; font-weight: 600; opacity: .7;
-  font-variant-numeric: tabular-nums;
-}
+.digital { fill: var(--green); font-size: 15px; font-weight: 600; opacity: .7; font-variant-numeric: tabular-nums; }
 .on-sector text { fill: #FFFFFF; }
 .knob { cursor: pointer; }
 .knob-ridge { fill: var(--orange-lo); stroke: var(--orange-lo); stroke-width: 3; stroke-dasharray: 2 2; }
@@ -133,48 +170,76 @@ button { font: inherit; color: inherit; }
 .knob-line { stroke: #FFF6E6; stroke-width: 3; stroke-linecap: round; }
 .knob:hover .knob-body { fill: #F5C070; }
 
-.pip-notice { color: var(--muted); text-align: center; line-height: 1.6; margin: 40px 0; }
+.pip-notice { color: var(--muted); text-align: center; line-height: 1.6; }
 
-/* controls */
-.controls { display: flex; gap: 10px; }
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  min-width: 48px; height: 48px; padding: 0 14px;
-  border: 1px solid var(--line); border-radius: 14px;
-  background: var(--panel); cursor: pointer;
-  transition: transform .08s, background .2s;
+/* ---------- settings sheet ---------- */
+.sheet {
+  width: min(420px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  padding: 18px 18px 16px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 24px 60px rgba(0,0,0,.35);
+  overflow-y: auto;
 }
-.btn:active { transform: scale(.96); }
-.btn.primary { background: var(--sector); border-color: transparent; color: #fff; padding: 0 22px; font-weight: 600; }
-.btn.on { background: var(--orange); border-color: transparent; color: #3a2a10; }
-.btn.small { height: 36px; font-size: 13px; border-radius: 10px; }
-.ico { width: 22px; height: 22px; fill: currentColor; }
+.sheet::backdrop { background: rgba(10,12,9,.45); backdrop-filter: blur(2px); }
+.sheet[open] { animation: rise .18s ease-out; }
+@keyframes rise { from { transform: translateY(12px); opacity: 0; } }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.sheet-head h2 { margin: 0; font-size: 17px; }
+.icon-btn {
+  width: 36px; height: 36px; border: 0; border-radius: 10px;
+  background: transparent; cursor: pointer; display: grid; place-items: center;
+}
+.icon-btn:hover { background: var(--field); }
+.ico { width: 20px; height: 20px; fill: currentColor; }
+
+.modes {
+  display: flex; gap: 4px; padding: 4px; margin-bottom: 12px;
+  background: var(--field); border-radius: 12px;
+}
+.mode {
+  flex: 1; border: 0; background: transparent; padding: 9px 4px;
+  border-radius: 9px; font-size: 14px; color: var(--muted); cursor: pointer;
+}
+.mode.active { background: var(--sector); color: #fff; }
+
+.actions { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.act {
+  height: 46px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--field);
+  font-size: 14px; white-space: nowrap; padding: 0 6px; cursor: pointer; transition: transform .08s;
+}
+.act:active { transform: scale(.97); }
+.act.primary { background: var(--sector); border-color: transparent; color: #fff; font-weight: 600; }
+.act.on { background: var(--orange); border-color: transparent; color: #3a2a10; }
 .ico-pause, body.running .ico-play { display: none; }
 body.running .ico-pause { display: block; }
 
-.session { margin: 0; color: var(--muted); font-size: 14px; display: flex; align-items: center; gap: 6px; }
+.session { margin: 0 0 14px; color: var(--muted); font-size: 14px; display: flex; align-items: center; gap: 8px; }
+.session b { color: var(--text); }
 .dots { display: inline-flex; gap: 5px; }
-.dots i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--green); display: block; }
-.dots i.done { background: var(--green); }
+.dots i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--sector); display: block; }
+.dots i.done { background: var(--sector); }
 
-/* settings */
-.settings {
-  width: 100%; background: var(--panel); border: 1px solid var(--line);
-  border-radius: 16px; padding: 4px 16px;
-}
-.settings summary { cursor: pointer; padding: 12px 0; font-weight: 600; }
-.settings[open] { padding-bottom: 16px; }
-.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.group { border-top: 1px solid var(--line); padding-top: 14px; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
 .grid label, .range { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
 .grid input {
   height: 38px; padding: 0 10px; border-radius: 10px;
-  border: 1px solid var(--line); background: var(--bg); color: var(--text); font: inherit;
+  border: 1px solid var(--line); background: var(--field); color: var(--text); font: inherit;
 }
 .check { display: flex; align-items: center; gap: 8px; font-size: 14px; margin: 8px 0; }
 .check input { width: 18px; height: 18px; accent-color: var(--green); }
 .range { margin: 10px 0; }
 .range input { accent-color: var(--green); }
 .row { display: flex; gap: 8px; flex-wrap: wrap; }
+.small {
+  height: 34px; padding: 0 12px; font-size: 13px; cursor: pointer;
+  border: 1px solid var(--line); border-radius: 10px; background: var(--field);
+}
 .hint { font-size: 12px; color: var(--muted); line-height: 1.6; margin: 12px 0 0; }
 
 .toast {
@@ -184,10 +249,6 @@ body.running .ico-pause { display: block; }
   font-size: 14px; line-height: 1.5; box-shadow: 0 8px 24px rgba(0,0,0,.25); z-index: 10;
 }
 
-/* always-on-top mini window (Document PiP / Electron compact) */
-body.pip, body.compact { background: var(--bg); overflow: hidden; }
-body.pip { display: grid; place-items: center; height: 100vh; margin: 0; }
+/* ---------- always-on-top mini window (Document PiP) ---------- */
+body.pip { display: grid; place-items: center; height: 100vh; }
 body.pip .clock-wrap { width: 92vmin; }
-body.compact .modes, body.compact .controls, body.compact .session, body.compact .settings { display: none; }
-body.compact .app { padding: 4vmin; justify-content: center; height: 100vh; }
-body.compact .clock-wrap { width: 92vmin; }

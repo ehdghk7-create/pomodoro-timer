@@ -84,6 +84,9 @@ function render() {
   document.body.classList.toggle('running', state.running);
   document.body.dataset.mode = state.mode;
   $('#clockWrap').dataset.mode = state.mode;
+  const paused = !state.running && state.remaining > 0 && Math.round(state.remaining) < settings[state.mode] * 60;
+  $('#clockWrap').dataset.lamp =
+    Date.now() < alarmUntil ? 'alarm' : state.running ? 'run' : paused ? 'pause' : 'off';
   $('#startLabel').textContent = state.running ? '일시정지' : '시작';
   document.querySelectorAll('.mode').forEach((b) => b.classList.toggle('active', b.dataset.mode === state.mode));
   $('#todayCount').textContent = today.count;
@@ -99,6 +102,12 @@ function render() {
 
 /* ---------- timer ---------- */
 let loop = null;
+let alarmUntil = 0; // lamp blinks until this time
+function stopAlarmLamp() {
+  if (!alarmUntil) return;
+  alarmUntil = 0;
+  render();
+}
 function start() {
   if (state.remaining <= 0) state.remaining = settings[state.mode] * 60;
   unlockAudio();
@@ -141,6 +150,8 @@ function finish() {
   state.running = false;
   state.remaining = 0;
   wakeLock(false);
+  alarmUntil = Date.now() + 8000;
+  setTimeout(render, 8100);
   render();
   playAlarm();
   if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 600]);
@@ -195,14 +206,32 @@ dial.addEventListener('pointermove', (e) => { if (dragging) setFromPointer(e); }
 const endDrag = () => { if (dragging) { dragging = false; saveState(); } };
 dial.addEventListener('pointerup', endDrag);
 dial.addEventListener('pointercancel', endDrag);
-$('#knob').addEventListener('click', () => { if (downOnKnob) toggle(); });
+$('#knob').addEventListener('click', () => {
+  if (!downOnKnob) return;
+  if (alarmUntil) { stopAlarmLamp(); if (!state.running) return; }
+  toggle();
+});
+
+/* ---------- settings sheet (opened from the "pomo." logo) ---------- */
+const sheet = $('#settings');
+function openSettings() {
+  if (pipWin) window.focus();
+  if (!sheet.open) sheet.showModal();
+}
+const closeSettings = () => sheet.open && sheet.close();
+$('#brand').addEventListener('click', openSettings);
+$('#btnClose').addEventListener('click', closeSettings);
+// tap on the dimmed backdrop closes it
+sheet.addEventListener('click', (e) => { if (e.target === sheet) closeSettings(); });
 
 /* ---------- keyboard ---------- */
 function onKey(e) {
   if (e.target.matches && e.target.matches('input')) return;
+  if (e.code === 'Space' && e.target.closest && e.target.closest('button')) return; // let buttons handle it
   if (e.code === 'Space') { e.preventDefault(); toggle(); }
   else if (e.key === 'r' || e.key === 'R') reset();
   else if (e.key === 'p' || e.key === 'P') togglePin();
+  else if (e.key === 's' || e.key === 'S') (sheet.open ? closeSettings() : openSettings());
   else if (e.key === 'ArrowUp' || e.key === 'ArrowRight') { e.preventDefault(); setMinutes(Math.floor(state.remaining / 60) + 1); saveState(); }
   else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') { e.preventDefault(); setMinutes(Math.ceil(state.remaining / 60) - 1); saveState(); }
 }
@@ -267,8 +296,9 @@ async function togglePin() {
   // 1) desktop app (Electron)
   if (window.electronAPI) {
     const on = await window.electronAPI.toggleAlwaysOnTop();
-    document.body.classList.toggle('compact', on);
     setPinUI(on);
+    if (on) closeSettings();
+    toast(on ? '항상 위에 고정했어요' : '고정을 해제했어요');
     return;
   }
   // 2) Chrome / Edge: Document Picture-in-Picture floats above every window
@@ -288,6 +318,7 @@ async function togglePin() {
   pipWin.document.head.appendChild(style);
   pipWin.document.title = 'Pomodoro';
   pipWin.document.body.classList.add('pip');
+  closeSettings();
   pipWin.document.body.appendChild($('#clockWrap'));
   pipWin.document.addEventListener('keydown', onKey);
   $('#pipNotice').hidden = false;

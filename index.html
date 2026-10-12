@@ -15,63 +15,70 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body data-mode="focus">
-  <main class="app">
+  <main id="clockSlot" class="stage">
+    <div id="clockWrap" class="clock-wrap" data-mode="focus" data-lamp="off">
+      <div class="clock">
+        <span class="lamp" aria-hidden="true"><span class="lamp-glass"></span></span>
+        <button id="brand" class="brand" aria-label="설정 열기" title="설정">pomo.</button>
+        <svg id="dial" class="dial" viewBox="0 0 400 400" role="slider"
+             aria-label="남은 시간 (드래그해서 설정)" aria-valuemin="0" aria-valuemax="60" tabindex="0">
+          <circle class="face" cx="200" cy="200" r="192"/>
+          <path id="sector" class="sector" d=""/>
+          <g id="ticks" class="ticks"></g>
+          <g id="labels" class="labels"></g>
+          <text class="motto" x="200" y="270" text-anchor="middle">Great things</text>
+          <text class="motto" x="200" y="292" text-anchor="middle">take time.</text>
+          <text id="digital" class="digital" x="200" y="326" text-anchor="middle">25:00</text>
+          <clipPath id="sectorClip"><path id="sectorClipPath" d=""/></clipPath>
+          <g class="on-sector" clip-path="url(#sectorClip)" aria-hidden="true">
+            <text class="motto" x="200" y="270" text-anchor="middle">Great things</text>
+            <text class="motto" x="200" y="292" text-anchor="middle">take time.</text>
+            <text id="digital2" class="digital" x="200" y="326" text-anchor="middle">25:00</text>
+          </g>
+          <g id="knob" class="knob" role="button" aria-label="시작 / 일시정지">
+            <circle class="knob-ridge" cx="200" cy="200" r="27"/>
+            <circle class="knob-body" cx="200" cy="200" r="24"/>
+            <line id="knobLine" class="knob-line" x1="200" y1="200" x2="200" y2="181"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+    <p id="pipNotice" class="pip-notice" hidden>타이머가 ‘항상 위’ 창에 떠 있어요.<br>창을 닫으면 여기로 돌아옵니다.</p>
+  </main>
+
+  <dialog id="settings" class="sheet" aria-label="설정">
+    <div class="sheet-head">
+      <h2>설정</h2>
+      <button id="btnClose" class="icon-btn" aria-label="닫기">
+        <svg viewBox="0 0 24 24" class="ico"><path d="M6.4 5 5 6.4 10.6 12 5 17.6 6.4 19l5.6-5.6 5.6 5.6 1.4-1.4-5.6-5.6L19 6.4 17.6 5 12 10.6z"/></svg>
+      </button>
+    </div>
+
     <nav class="modes" role="tablist" aria-label="모드">
       <button class="mode" data-mode="focus" role="tab">집중</button>
       <button class="mode" data-mode="short" role="tab">짧은 휴식</button>
       <button class="mode" data-mode="long" role="tab">긴 휴식</button>
     </nav>
 
-    <div id="clockSlot" class="clock-slot">
-      <div id="clockWrap" class="clock-wrap" data-mode="focus">
-        <div class="clock">
-          <span class="deco-top" aria-hidden="true"></span>
-          <span class="deco-side" aria-hidden="true"></span>
-          <span class="brand" aria-hidden="true">pomo.</span>
-          <svg id="dial" class="dial" viewBox="0 0 400 400" role="slider"
-               aria-label="남은 시간 (드래그해서 설정)" aria-valuemin="0" aria-valuemax="60" tabindex="0">
-            <circle class="face" cx="200" cy="200" r="192"/>
-            <path id="sector" class="sector" d=""/>
-            <g id="ticks" class="ticks"></g>
-            <g id="labels" class="labels"></g>
-            <text class="motto" x="200" y="270" text-anchor="middle">Great things</text>
-            <text class="motto" x="200" y="292" text-anchor="middle">take time.</text>
-            <text id="digital" class="digital" x="200" y="326" text-anchor="middle">25:00</text>
-            <clipPath id="sectorClip"><path id="sectorClipPath" d=""/></clipPath>
-            <g class="on-sector" clip-path="url(#sectorClip)" aria-hidden="true">
-              <text class="motto" x="200" y="270" text-anchor="middle">Great things</text>
-              <text class="motto" x="200" y="292" text-anchor="middle">take time.</text>
-              <text id="digital2" class="digital" x="200" y="326" text-anchor="middle">25:00</text>
-            </g>
-            <g id="knob" class="knob" role="button" aria-label="시작 / 일시정지">
-              <circle class="knob-ridge" cx="200" cy="200" r="27"/>
-              <circle class="knob-body" cx="200" cy="200" r="24"/>
-              <line id="knobLine" class="knob-line" x1="200" y1="200" x2="200" y2="181"/>
-            </g>
-          </svg>
-        </div>
-      </div>
-      <p id="pipNotice" class="pip-notice" hidden>타이머가 ‘항상 위’ 창에 떠 있어요.<br>창을 닫으면 여기로 돌아옵니다.</p>
-    </div>
-
-    <div class="controls">
-      <button id="btnStart" class="btn primary" aria-label="시작">
+    <div class="actions">
+      <button id="btnStart" class="act primary">
         <svg viewBox="0 0 24 24" class="ico ico-play"><path d="M8 5v14l11-7z"/></svg>
         <svg viewBox="0 0 24 24" class="ico ico-pause"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
         <span id="startLabel">시작</span>
       </button>
-      <button id="btnReset" class="btn" aria-label="초기화">
+      <button id="btnReset" class="act">
         <svg viewBox="0 0 24 24" class="ico"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg>
+        <span>초기화</span>
       </button>
-      <button id="btnPin" class="btn" aria-label="항상 위" title="항상 위에 고정">
+      <button id="btnPin" class="act">
         <svg viewBox="0 0 24 24" class="ico"><path d="M16 3l5 5-3 1-4 4 1 5-2 2-4-4-5 5-1-1 5-5-4-4 2-2 5 1 4-4z"/></svg>
+        <span>항상 위</span>
       </button>
     </div>
 
-    <p class="session">오늘 완료 <span id="todayCount">0</span>개 · <span id="cycleDots" class="dots"></span></p>
+    <p class="session">오늘 완료 <b id="todayCount">0</b>개 <span id="cycleDots" class="dots"></span></p>
 
-    <details class="settings">
-      <summary>설정</summary>
+    <div class="group">
       <div class="grid">
         <label>집중 (분)<input type="number" id="setFocus" min="1" max="60"></label>
         <label>짧은 휴식 (분)<input type="number" id="setShort" min="1" max="60"></label>
@@ -82,12 +89,13 @@
       <label class="check"><input type="checkbox" id="setSound"> 알람 소리</label>
       <label class="range">볼륨<input type="range" id="setVolume" min="0" max="1" step="0.05"></label>
       <div class="row">
-        <button id="btnTest" class="btn small">소리 테스트</button>
-        <button id="btnInstall" class="btn small" hidden>앱으로 설치</button>
+        <button id="btnTest" class="small">소리 테스트</button>
+        <button id="btnInstall" class="small" hidden>앱으로 설치</button>
       </div>
-      <p class="hint">다이얼을 드래그해 시간 설정 · 가운데 노브 클릭으로 시작/정지<br>단축키: Space 시작/정지 · R 초기화 · ↑↓ 1분 조절 · P 항상 위</p>
-    </details>
-  </main>
+    </div>
+    <p class="hint">다이얼 드래그: 시간 설정 · 가운데 노브: 시작/정지<br>단축키 Space 시작/정지 · R 초기화 · ↑↓ 1분 · P 항상 위 · S 설정</p>
+  </dialog>
+
   <div id="toast" class="toast" role="status" hidden></div>
   <script src="app.js"></script>
 </body>

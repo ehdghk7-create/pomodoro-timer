@@ -172,7 +172,7 @@ button { font: inherit; color: inherit; }
 .knob-hit {
   position: absolute;
   left: 50%; top: 50%;
-  width: 21%; aspect-ratio: 1;
+  width: 24%; aspect-ratio: 1;
   transform: translate(-50%, -50%);
   border: 0; border-radius: 50%; padding: 0;
   background: transparent;
@@ -289,8 +289,8 @@ body.running .ico-pause { display: block; }
 body.desktop { background: transparent; }
 body.desktop .stage { padding: 3vmin 5vmin 8vmin; }
 body.desktop .clock-wrap { width: min(88vw, 86vh); }
-body.desktop .clock { -webkit-app-region: drag; }
-body.desktop .knob-hit, body.desktop .brand { -webkit-app-region: no-drag; }
+body.desktop .clock { cursor: grab; touch-action: none; }
+body.desktop .clock.moving { cursor: grabbing; }
 body.desktop .desk-only { display: inline; }
 body.desktop .sheet { max-height: calc(100vh - 12px); width: calc(100vw - 12px); padding: 14px; }
 body.desktop .sheet::backdrop { background: transparent; }

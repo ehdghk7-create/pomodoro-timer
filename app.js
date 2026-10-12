@@ -169,27 +169,33 @@ function finish() {
 }
 
 /* ---------- turn the knob to set the time ----------
-   Only the knob sets the time, so the rest of the clock can be grabbed to move the window.
-   Press the knob and drag outward: the time follows the pointer's angle around the dial.
-   A short press without dragging starts / pauses. */
+   Works like a real dial: grab the knob and rotate; the time follows the angle you turn
+   (one full turn = 60 min), whether you circle tightly around the knob or far away.
+   Only the knob sets the time, so the rest of the clock is free for moving the window.
+   A short press without turning starts / pauses. */
 const dial = $('#dial');
 const knobHit = $('#knobHit');
-const KNOB_DEADZONE = 34; // viewBox units; inside this the angle is too jittery to use
-let dragging = false, dragged = false, lastMin = 0, downX = 0, downY = 0;
-function setFromPointer(e) {
+const TURN_DEADZONE = 6; // viewBox units from the center; the angle is meaningless there
+let dragging = false, dragged = false, downX = 0, downY = 0;
+let turnMin = 0, prevAng = null, lastSetMin = 0;
+function angleOf(e) {
   const r = dial.getBoundingClientRect();
   const x = ((e.clientX - r.left) / r.width) * 400 - CX;
   const y = ((e.clientY - r.top) / r.height) * 400 - CY;
-  if (Math.hypot(x, y) < KNOB_DEADZONE) return;
-  let ang = Math.atan2(x, -y);
-  if (ang < 0) ang += Math.PI * 2;
-  let min = (ang / (Math.PI * 2)) * 60;
-  // don't wrap around past 12 o'clock
-  if (lastMin > 45 && min < 15) min = 60;
-  else if (lastMin < 15 && min > 45) min = 0;
-  min = Math.round(min);
-  lastMin = min;
-  setMinutes(min);
+  return Math.hypot(x, y) < TURN_DEADZONE ? null : Math.atan2(x, -y);
+}
+function turnTo(e) {
+  const ang = angleOf(e);
+  if (ang == null) return;
+  if (prevAng == null) { prevAng = ang; return; }
+  let delta = ang - prevAng;
+  if (delta > Math.PI) delta -= Math.PI * 2;
+  else if (delta < -Math.PI) delta += Math.PI * 2;
+  prevAng = ang;
+  // clamp at 0 and 60 instead of wrapping around
+  turnMin = Math.max(0, Math.min(60, turnMin + (delta / (Math.PI * 2)) * 60));
+  const min = Math.round(turnMin);
+  if (min !== lastSetMin) { lastSetMin = min; setMinutes(min); }
 }
 function setMinutes(min) {
   min = Math.max(0, Math.min(60, min));
@@ -202,18 +208,21 @@ function setMinutes(min) {
 }
 knobHit.addEventListener('pointerdown', (e) => {
   unlockAudio();
+  e.stopPropagation(); // don't start a window move
   dragging = true;
   dragged = false;
   downX = e.clientX; downY = e.clientY;
-  lastMin = state.remaining / 60;
+  turnMin = state.remaining / 60;
+  lastSetMin = Math.round(turnMin);
+  prevAng = angleOf(e);
   knobHit.setPointerCapture(e.pointerId);
   document.body.classList.add('turning');
 });
 knobHit.addEventListener('pointermove', (e) => {
   if (!dragging) return;
-  if (!dragged && Math.hypot(e.clientX - downX, e.clientY - downY) < 5) return;
+  if (!dragged && Math.hypot(e.clientX - downX, e.clientY - downY) < 4) return;
   dragged = true;
-  setFromPointer(e);
+  turnTo(e);
 });
 const endDrag = () => {
   if (!dragging) return;
@@ -424,6 +433,30 @@ if (window.electronAPI) {
   $('#btnMin').addEventListener('click', () => { closeSettings(); api.minimize(); });
   $('#btnQuit').addEventListener('click', () => api.quit());
   api.getState().then((s) => { setPinUI(s.onTop); markSize(s.size); });
+
+  // Move the window by grabbing anywhere on the clock except the knob and logo.
+  // Done by hand (not -webkit-app-region) so turning the knob never loses the mouse.
+  const clock = $('.clock');
+  let moving = false, sx = 0, sy = 0;
+  clock.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0 || e.target.closest('#knobHit, #brand')) return;
+    moving = true;
+    sx = e.screenX; sy = e.screenY;
+    clock.setPointerCapture(e.pointerId);
+    clock.classList.add('moving');
+    api.dragStart();
+  });
+  clock.addEventListener('pointermove', (e) => {
+    if (moving) api.dragMove(e.screenX - sx, e.screenY - sy);
+  });
+  const endMove = () => {
+    if (!moving) return;
+    moving = false;
+    clock.classList.remove('moving');
+    api.dragEnd();
+  };
+  clock.addEventListener('pointerup', endMove);
+  clock.addEventListener('pointercancel', endMove);
 }
 
 render();

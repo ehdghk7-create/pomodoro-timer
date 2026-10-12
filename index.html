@@ -20,8 +20,9 @@
       <div class="clock">
         <span class="lamp" aria-hidden="true"><span class="lamp-glass"></span></span>
         <button id="brand" class="brand" aria-label="설정 열기" title="설정">pomo.</button>
-        <svg id="dial" class="dial" viewBox="0 0 400 400" role="slider"
-             aria-label="남은 시간 (드래그해서 설정)" aria-valuemin="0" aria-valuemax="60" tabindex="0">
+        <button id="knobHit" class="knob-hit" aria-label="노브: 누르면 시작/정지, 잡고 돌리면 시간 설정"></button>
+        <svg id="dial" class="dial" viewBox="0 0 400 400" role="img"
+             aria-label="남은 시간" aria-valuemin="0" aria-valuemax="60">
           <defs>
             <!-- recessed bezel: shadow on top, light catching the bottom lip -->
             <linearGradient id="gBezel" x1="0" y1="0" x2="0" y2="1">
@@ -87,7 +88,7 @@
 
           <!-- knob: contact shadow, knurled skirt, domed cap, dished top, indicator groove -->
           <ellipse cx="204" cy="209" rx="31" ry="30" fill="#000" opacity=".35" filter="url(#fBlur3)" pointer-events="none"/>
-          <g id="knob" class="knob" role="button" aria-label="시작 / 일시정지">
+          <g id="knob" class="knob">
             <circle cx="200" cy="200" r="31" fill="url(#gKnurl)"/>
             <circle cx="200" cy="200" r="29.5" fill="none" stroke="#9A5E14" stroke-width="3" stroke-dasharray="1.3 1.5" opacity=".75"/>
             <circle cx="200" cy="200" r="26" fill="url(#gKnobCap)"/>
@@ -174,7 +175,7 @@
         <button id="btnInstall" class="small" hidden>앱으로 설치</button>
       </div>
     </div>
-    <p class="hint">다이얼 드래그: 시간 설정 · 가운데 노브: 시작/정지<br><span class="desk-only">시계 테두리를 잡고 끌면 창 이동<br></span>단축키 Space 시작/정지 · R 초기화 · ↑↓ 1분 · P 항상 위 · S 설정</p>
+    <p class="hint">노브를 잡고 돌리기: 시간 설정 · 노브 짧게 누르기: 시작/정지<br><span class="desk-only">노브 말고 시계 아무 곳이나 잡고 끌면 창 이동<br></span>단축키 Space 시작/정지 · R 초기화 · ↑↓ 1분 · P 항상 위 · S 설정</p>
   </dialog>
 
   <div id="toast" class="toast" role="status" hidden></div>

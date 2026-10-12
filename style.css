@@ -166,11 +166,24 @@ button { font: inherit; color: inherit; }
 /* ---------- dial ---------- */
 .dial {
   display: block; width: 100%; height: 100%;
-  touch-action: none; user-select: none; -webkit-user-select: none;
-  cursor: grab; outline: none;
+  user-select: none; -webkit-user-select: none;
 }
-.dial:active { cursor: grabbing; }
-.dial:focus-visible .face { stroke: var(--orange); stroke-width: 3; }
+/* invisible grab area over the knob (knob r≈31 of a 400 dial; a bit larger for fingers) */
+.knob-hit {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 21%; aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border: 0; border-radius: 50%; padding: 0;
+  background: transparent;
+  cursor: grab;
+  touch-action: none;
+  z-index: 2;
+}
+.knob-hit:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+.knob-hit:hover + .dial .knob { filter: brightness(1.06); }
+body.turning, body.turning .knob-hit { cursor: grabbing; }
+body.turning .knob { filter: brightness(.95); }
 .sector { fill: var(--sector); transition: fill .3s; }
 .ticks line { stroke: var(--green); stroke-width: 1.4; stroke-linecap: round; }
 .ticks line.major { stroke-width: 2.4; }
@@ -181,9 +194,7 @@ button { font: inherit; color: inherit; }
 .motto { fill: var(--green); font-size: 17px; font-weight: 600; letter-spacing: -.01em; }
 .digital { fill: var(--green); font-size: 15px; font-weight: 600; opacity: .7; font-variant-numeric: tabular-nums; }
 .on-sector text { fill: #FFFFFF; }
-.knob { cursor: pointer; transition: filter .15s; }
-.knob:hover { filter: brightness(1.06); }
-.knob:active { filter: brightness(.94); }
+.knob { transition: filter .15s; }
 
 .pip-notice { color: var(--muted); text-align: center; line-height: 1.6; }
 
@@ -279,7 +290,7 @@ body.desktop { background: transparent; }
 body.desktop .stage { padding: 3vmin 5vmin 8vmin; }
 body.desktop .clock-wrap { width: min(88vw, 86vh); }
 body.desktop .clock { -webkit-app-region: drag; }
-body.desktop .dial, body.desktop .brand, body.desktop .lamp { -webkit-app-region: no-drag; }
+body.desktop .knob-hit, body.desktop .brand { -webkit-app-region: no-drag; }
 body.desktop .desk-only { display: inline; }
 body.desktop .sheet { max-height: calc(100vh - 12px); width: calc(100vw - 12px); padding: 14px; }
 body.desktop .sheet::backdrop { background: transparent; }

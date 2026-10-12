@@ -168,13 +168,19 @@ function finish() {
   setTimeout(() => setMode(next, settings.autoStart), 1200);
 }
 
-/* ---------- drag to set (Google Timer style) ---------- */
+/* ---------- turn the knob to set the time ----------
+   Only the knob sets the time, so the rest of the clock can be grabbed to move the window.
+   Press the knob and drag outward: the time follows the pointer's angle around the dial.
+   A short press without dragging starts / pauses. */
 const dial = $('#dial');
-let dragging = false, lastMin = 0, downOnKnob = false;
+const knobHit = $('#knobHit');
+const KNOB_DEADZONE = 34; // viewBox units; inside this the angle is too jittery to use
+let dragging = false, dragged = false, lastMin = 0, downX = 0, downY = 0;
 function setFromPointer(e) {
   const r = dial.getBoundingClientRect();
   const x = ((e.clientX - r.left) / r.width) * 400 - CX;
   const y = ((e.clientY - r.top) / r.height) * 400 - CY;
+  if (Math.hypot(x, y) < KNOB_DEADZONE) return;
   let ang = Math.atan2(x, -y);
   if (ang < 0) ang += Math.PI * 2;
   let min = (ang / (Math.PI * 2)) * 60;
@@ -194,21 +200,32 @@ function setMinutes(min) {
   }
   render();
 }
-dial.addEventListener('pointerdown', (e) => {
+knobHit.addEventListener('pointerdown', (e) => {
   unlockAudio();
-  downOnKnob = !!e.target.closest('#knob');
-  if (downOnKnob) return;
   dragging = true;
-  dial.setPointerCapture(e.pointerId);
+  dragged = false;
+  downX = e.clientX; downY = e.clientY;
   lastMin = state.remaining / 60;
+  knobHit.setPointerCapture(e.pointerId);
+  document.body.classList.add('turning');
+});
+knobHit.addEventListener('pointermove', (e) => {
+  if (!dragging) return;
+  if (!dragged && Math.hypot(e.clientX - downX, e.clientY - downY) < 5) return;
+  dragged = true;
   setFromPointer(e);
 });
-dial.addEventListener('pointermove', (e) => { if (dragging) setFromPointer(e); });
-const endDrag = () => { if (dragging) { dragging = false; saveState(); } };
-dial.addEventListener('pointerup', endDrag);
-dial.addEventListener('pointercancel', endDrag);
-$('#knob').addEventListener('click', () => {
-  if (!downOnKnob) return;
+const endDrag = () => {
+  if (!dragging) return;
+  dragging = false;
+  document.body.classList.remove('turning');
+  if (dragged) saveState();
+};
+knobHit.addEventListener('pointerup', endDrag);
+knobHit.addEventListener('pointercancel', endDrag);
+// short press (or Enter on the focused knob) = start / pause
+knobHit.addEventListener('click', () => {
+  if (dragged) { dragged = false; return; }
   if (alarmUntil) { stopAlarmLamp(); if (!state.running) return; }
   toggle();
 });

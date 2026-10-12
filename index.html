@@ -22,8 +22,57 @@
         <button id="brand" class="brand" aria-label="설정 열기" title="설정">pomo.</button>
         <svg id="dial" class="dial" viewBox="0 0 400 400" role="slider"
              aria-label="남은 시간 (드래그해서 설정)" aria-valuemin="0" aria-valuemax="60" tabindex="0">
-          <circle class="face" cx="200" cy="200" r="192"/>
+          <defs>
+            <!-- recessed bezel: shadow on top, light catching the bottom lip -->
+            <linearGradient id="gBezel" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#A89B7C"/>
+              <stop offset=".45" stop-color="#D6CBB1"/>
+              <stop offset="1" stop-color="#FFFDF6"/>
+            </linearGradient>
+            <radialGradient id="gFace" cx="50%" cy="46%" r="55%">
+              <stop offset="0" stop-color="#FFFFFF"/>
+              <stop offset=".75" stop-color="#FAF8F2"/>
+              <stop offset="1" stop-color="#EEEAE0"/>
+            </radialGradient>
+            <!-- inner shadow cast by the bezel onto the face -->
+            <radialGradient id="gFaceShade" cx="50%" cy="56%" r="52%">
+              <stop offset=".86" stop-color="#000" stop-opacity="0"/>
+              <stop offset="1" stop-color="#000" stop-opacity=".22"/>
+            </radialGradient>
+            <radialGradient id="gSectorShine" cx="50%" cy="50%" r="50%">
+              <stop offset="0" stop-color="#fff" stop-opacity=".10"/>
+              <stop offset=".7" stop-color="#fff" stop-opacity="0"/>
+              <stop offset="1" stop-color="#000" stop-opacity=".12"/>
+            </radialGradient>
+            <!-- acrylic cover reflection -->
+            <linearGradient id="gGlass" x1=".15" y1="0" x2=".7" y2=".85">
+              <stop offset="0" stop-color="#fff" stop-opacity=".55"/>
+              <stop offset=".35" stop-color="#fff" stop-opacity=".12"/>
+              <stop offset=".5" stop-color="#fff" stop-opacity="0"/>
+            </linearGradient>
+            <radialGradient id="gKnobCap" cx="38%" cy="32%" r="75%">
+              <stop offset="0" stop-color="#FFE3B0"/>
+              <stop offset=".35" stop-color="#F6BD63"/>
+              <stop offset=".8" stop-color="#DE9634"/>
+              <stop offset="1" stop-color="#B8751E"/>
+            </radialGradient>
+            <radialGradient id="gKnobDish" cx="60%" cy="65%" r="70%">
+              <stop offset="0" stop-color="#F8C677"/>
+              <stop offset="1" stop-color="#E9A445"/>
+            </radialGradient>
+            <linearGradient id="gKnurl" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#F7C67A"/>
+              <stop offset="1" stop-color="#A9681A"/>
+            </linearGradient>
+            <filter id="fBlur3" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3"/></filter>
+            <filter id="fBlur1" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1"/></filter>
+          </defs>
+
+          <circle cx="200" cy="200" r="198" fill="url(#gBezel)"/>
+          <circle class="face" cx="200" cy="200" r="190" fill="url(#gFace)"/>
           <path id="sector" class="sector" d=""/>
+          <path id="sectorShine" d="" fill="url(#gSectorShine)" pointer-events="none"/>
+          <circle cx="200" cy="200" r="190" fill="url(#gFaceShade)" pointer-events="none"/>
           <g id="ticks" class="ticks"></g>
           <g id="labels" class="labels"></g>
           <text class="motto" x="200" y="270" text-anchor="middle">Great things</text>
@@ -35,10 +84,27 @@
             <text class="motto" x="200" y="292" text-anchor="middle">take time.</text>
             <text id="digital2" class="digital" x="200" y="326" text-anchor="middle">25:00</text>
           </g>
+
+          <!-- knob: contact shadow, knurled skirt, domed cap, dished top, indicator groove -->
+          <ellipse cx="204" cy="209" rx="31" ry="30" fill="#000" opacity=".35" filter="url(#fBlur3)" pointer-events="none"/>
           <g id="knob" class="knob" role="button" aria-label="시작 / 일시정지">
-            <circle class="knob-ridge" cx="200" cy="200" r="27"/>
-            <circle class="knob-body" cx="200" cy="200" r="24"/>
-            <line id="knobLine" class="knob-line" x1="200" y1="200" x2="200" y2="181"/>
+            <circle cx="200" cy="200" r="31" fill="url(#gKnurl)"/>
+            <circle cx="200" cy="200" r="29.5" fill="none" stroke="#9A5E14" stroke-width="3" stroke-dasharray="1.3 1.5" opacity=".75"/>
+            <circle cx="200" cy="200" r="26" fill="url(#gKnobCap)"/>
+            <circle cx="200" cy="200" r="25.5" fill="none" stroke="#FFF1D6" stroke-opacity=".6" stroke-width="1"/>
+            <circle cx="200" cy="200" r="19" fill="url(#gKnobDish)"/>
+            <circle cx="200" cy="200" r="19" fill="none" stroke="#C5832B" stroke-opacity=".45" stroke-width="1"/>
+            <g id="knobLine">
+              <line x1="200" y1="199" x2="200" y2="178" stroke="#A9681A" stroke-width="3.2" stroke-linecap="round"/>
+              <line x1="200.8" y1="199" x2="200.8" y2="178" stroke="#FFF3DC" stroke-width="1.2" stroke-linecap="round" opacity=".8"/>
+            </g>
+          </g>
+
+          <!-- acrylic cover on top of everything (ignores the mouse) -->
+          <g pointer-events="none">
+            <path d="M200,10 A190,190 0 0 0 31,286 C 90,180 170,90 330,60 A190,190 0 0 0 200,10Z" fill="url(#gGlass)"/>
+            <path d="M74,72 A178,178 0 0 1 200,22" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".7" filter="url(#fBlur1)"/>
+            <circle cx="200" cy="200" r="190" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1"/>
           </g>
         </svg>
       </div>
@@ -78,6 +144,21 @@
 
     <p class="session">오늘 완료 <b id="todayCount">0</b>개 <span id="cycleDots" class="dots"></span></p>
 
+    <div id="winGroup" class="group win-group" hidden>
+      <div class="win-row">
+        <span class="label">시계 크기</span>
+        <div class="seg">
+          <button class="size" data-size="260">작게</button>
+          <button class="size" data-size="380">보통</button>
+          <button class="size" data-size="520">크게</button>
+        </div>
+      </div>
+      <div class="row">
+        <button id="btnMin" class="small">최소화</button>
+        <button id="btnQuit" class="small danger">종료</button>
+      </div>
+    </div>
+
     <div class="group">
       <div class="grid">
         <label>집중 (분)<input type="number" id="setFocus" min="1" max="60"></label>
@@ -93,7 +174,7 @@
         <button id="btnInstall" class="small" hidden>앱으로 설치</button>
       </div>
     </div>
-    <p class="hint">다이얼 드래그: 시간 설정 · 가운데 노브: 시작/정지<br>단축키 Space 시작/정지 · R 초기화 · ↑↓ 1분 · P 항상 위 · S 설정</p>
+    <p class="hint">다이얼 드래그: 시간 설정 · 가운데 노브: 시작/정지<br><span class="desk-only">시계 테두리를 잡고 끌면 창 이동<br></span>단축키 Space 시작/정지 · R 초기화 · ↑↓ 1분 · P 항상 위 · S 설정</p>
   </dialog>
 
   <div id="toast" class="toast" role="status" hidden></div>

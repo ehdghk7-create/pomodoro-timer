@@ -74,6 +74,7 @@ function render() {
   const d = sectorPath(frac);
   $('#sector').setAttribute('d', d);
   $('#sectorClipPath').setAttribute('d', d);
+  $('#sectorShine').setAttribute('d', d);
   $('#knobLine').setAttribute('transform', `rotate(${frac * 360} ${CX} ${CY})`);
   const t = fmt(state.remaining);
   $('#digital').textContent = t;
@@ -214,11 +215,14 @@ $('#knob').addEventListener('click', () => {
 
 /* ---------- settings sheet (opened from the "pomo." logo) ---------- */
 const sheet = $('#settings');
-function openSettings() {
+async function openSettings() {
   if (pipWin) window.focus();
-  if (!sheet.open) sheet.showModal();
+  if (sheet.open) return;
+  if (window.electronAPI) await window.electronAPI.sheet(true); // grow the window to fit the sheet
+  sheet.showModal();
 }
 const closeSettings = () => sheet.open && sheet.close();
+sheet.addEventListener('close', () => { if (window.electronAPI) window.electronAPI.sheet(false); });
 $('#brand').addEventListener('click', openSettings);
 $('#btnClose').addEventListener('click', closeSettings);
 // tap on the dimmed backdrop closes it
@@ -390,6 +394,20 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
 
 // hide the pin button where always-on-top isn't possible (phones, Safari, Firefox)
 if (!window.electronAPI && !('documentPictureInPicture' in window)) $('#btnPin').hidden = true;
+
+/* ---------- desktop app: frameless window controls ---------- */
+if (window.electronAPI) {
+  const api = window.electronAPI;
+  document.body.classList.add('desktop');
+  $('#winGroup').hidden = false;
+  const markSize = (n) => document.querySelectorAll('.size').forEach((b) => b.classList.toggle('active', +b.dataset.size === n));
+  document.querySelectorAll('.size').forEach((b) =>
+    b.addEventListener('click', async () => markSize(await api.setSize(+b.dataset.size)))
+  );
+  $('#btnMin').addEventListener('click', () => { closeSettings(); api.minimize(); });
+  $('#btnQuit').addEventListener('click', () => api.quit());
+  api.getState().then((s) => { setPinUI(s.onTop); markSize(s.size); });
+}
 
 render();
 if (state.running) { loop = setInterval(tick, 200); wakeLock(true); }

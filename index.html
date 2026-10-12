@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1F5F3B">
+  <meta name="description" content="드래그해서 시간을 맞추는 비주얼 뽀모도로 타이머">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Pomodoro">
+  <title>Pomodoro Timer</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-mode="focus">
+  <main class="app">
+    <nav class="modes" role="tablist" aria-label="모드">
+      <button class="mode" data-mode="focus" role="tab">집중</button>
+      <button class="mode" data-mode="short" role="tab">짧은 휴식</button>
+      <button class="mode" data-mode="long" role="tab">긴 휴식</button>
+    </nav>
+
+    <div id="clockSlot" class="clock-slot">
+      <div id="clockWrap" class="clock-wrap" data-mode="focus">
+        <div class="clock">
+          <span class="deco-top" aria-hidden="true"></span>
+          <span class="deco-side" aria-hidden="true"></span>
+          <span class="brand" aria-hidden="true">pomo.</span>
+          <svg id="dial" class="dial" viewBox="0 0 400 400" role="slider"
+               aria-label="남은 시간 (드래그해서 설정)" aria-valuemin="0" aria-valuemax="60" tabindex="0">
+            <circle class="face" cx="200" cy="200" r="192"/>
+            <path id="sector" class="sector" d=""/>
+            <g id="ticks" class="ticks"></g>
+            <g id="labels" class="labels"></g>
+            <text class="motto" x="200" y="270" text-anchor="middle">Great things</text>
+            <text class="motto" x="200" y="292" text-anchor="middle">take time.</text>
+            <text id="digital" class="digital" x="200" y="326" text-anchor="middle">25:00</text>
+            <clipPath id="sectorClip"><path id="sectorClipPath" d=""/></clipPath>
+            <g class="on-sector" clip-path="url(#sectorClip)" aria-hidden="true">
+              <text class="motto" x="200" y="270" text-anchor="middle">Great things</text>
+              <text class="motto" x="200" y="292" text-anchor="middle">take time.</text>
+              <text id="digital2" class="digital" x="200" y="326" text-anchor="middle">25:00</text>
+            </g>
+            <g id="knob" class="knob" role="button" aria-label="시작 / 일시정지">
+              <circle class="knob-ridge" cx="200" cy="200" r="27"/>
+              <circle class="knob-body" cx="200" cy="200" r="24"/>
+              <line id="knobLine" class="knob-line" x1="200" y1="200" x2="200" y2="181"/>
+            </g>
+          </svg>
+        </div>
+      </div>
+      <p id="pipNotice" class="pip-notice" hidden>타이머가 ‘항상 위’ 창에 떠 있어요.<br>창을 닫으면 여기로 돌아옵니다.</p>
+    </div>
+
+    <div class="controls">
+      <button id="btnStart" class="btn primary" aria-label="시작">
+        <svg viewBox="0 0 24 24" class="ico ico-play"><path d="M8 5v14l11-7z"/></svg>
+        <svg viewBox="0 0 24 24" class="ico ico-pause"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
+        <span id="startLabel">시작</span>
+      </button>
+      <button id="btnReset" class="btn" aria-label="초기화">
+        <svg viewBox="0 0 24 24" class="ico"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg>
+      </button>
+      <button id="btnPin" class="btn" aria-label="항상 위" title="항상 위에 고정">
+        <svg viewBox="0 0 24 24" class="ico"><path d="M16 3l5 5-3 1-4 4 1 5-2 2-4-4-5 5-1-1 5-5-4-4 2-2 5 1 4-4z"/></svg>
+      </button>
+    </div>
+
+    <p class="session">오늘 완료 <span id="todayCount">0</span>개 · <span id="cycleDots" class="dots"></span></p>
+
+    <details class="settings">
+      <summary>설정</summary>
+      <div class="grid">
+        <label>집중 (분)<input type="number" id="setFocus" min="1" max="60"></label>
+        <label>짧은 휴식 (분)<input type="number" id="setShort" min="1" max="60"></label>
+        <label>긴 휴식 (분)<input type="number" id="setLong" min="1" max="60"></label>
+        <label>긴 휴식 간격 (회)<input type="number" id="setEvery" min="2" max="10"></label>
+      </div>
+      <label class="check"><input type="checkbox" id="setAuto"> 다음 세션 자동 시작</label>
+      <label class="check"><input type="checkbox" id="setSound"> 알람 소리</label>
+      <label class="range">볼륨<input type="range" id="setVolume" min="0" max="1" step="0.05"></label>
+      <div class="row">
+        <button id="btnTest" class="btn small">소리 테스트</button>
+        <button id="btnInstall" class="btn small" hidden>앱으로 설치</button>
+      </div>
+      <p class="hint">다이얼을 드래그해 시간 설정 · 가운데 노브 클릭으로 시작/정지<br>단축키: Space 시작/정지 · R 초기화 · ↑↓ 1분 조절 · P 항상 위</p>
+    </details>
+  </main>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <script src="app.js"></script>
+</body>
+</html>

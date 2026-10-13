@@ -2,7 +2,8 @@
 
 let pipWin = null; // always-on-top window; the clock may live in its document
 const $ = (s) => document.querySelector(s) || (pipWin && pipWin.document.querySelector(s));
-const CX = 200, CY = 200, R_SECTOR = 140, DIAL_MAX = 60 * 60;
+const CX = 200, CY = 200, DIAL_MAX = 60 * 60;
+let sectorR = 140; // shrinks a little on small clocks to make room for bigger numbers
 const MODE_NAME = { focus: '집중', short: '짧은 휴식', long: '긴 휴식' };
 
 /* ---------- storage ---------- */
@@ -47,18 +48,67 @@ const polar = (deg, r) => {
     if (major) l.classList.add('major');
     ticks.appendChild(l);
     if (major) {
-      const [tx, ty] = polar(i * 6, 153);
       const t = document.createElementNS(svgNS, 'text');
-      t.setAttribute('x', tx); t.setAttribute('y', ty);
+      t.dataset.deg = i * 6;
       t.textContent = i;
       labels.appendChild(t);
     }
   }
 })();
 
+/* ---------- keep text readable at any clock size ----------
+   The dial is drawn in a 400-unit viewBox, so on a small clock every font shrinks with it.
+   Scale fonts (and tick weight) up as the clock gets smaller so they never drop below
+   a readable on-screen pixel size, and make room for the bigger numbers. */
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+function fitText() {
+  const dialEl = $('#dial');
+  const px = dialEl.getBoundingClientRect().width;
+  if (!px) return;
+  const s = px / 400; // screen px per viewBox unit
+  const labelFont = clamp(14 / s, 15, 30);
+  const labelR = 153 - (labelFont - 15) * 0.42;
+  // keep the green disc inside the ring of numbers so they never sit on green
+  const newSectorR = Math.min(140, Math.round(labelR - labelFont * 0.55 - 3));
+  const sectorChanged = newSectorR !== sectorR;
+  sectorR = newSectorR;
+  dialEl.querySelectorAll('#labels text').forEach((t) => {
+    const [x, y] = polar(+t.dataset.deg, labelR);
+    t.setAttribute('x', x); t.setAttribute('y', y);
+  });
+  $('#labels').style.fontSize = labelFont + 'px';
+  $('#labels').style.fontWeight = labelFont > 18 ? 700 : 600;
+
+  const mottoFont = clamp(13.5 / s, 17, 27);
+  const digitFont = clamp(14 / s, 15, 28);
+  // stack the motto and the countdown upward from just above the "30" label
+  const yd = Math.min(326, CY + labelR - labelFont * 0.5 - 6);
+  const y2 = Math.min(292, yd - digitFont - 5);
+  const y1 = y2 - mottoFont * 1.2;
+  dialEl.querySelectorAll('.motto').forEach((t, i) => {
+    t.setAttribute('y', i % 2 ? y2 : y1);
+    t.style.fontSize = mottoFont + 'px';
+    t.style.fontWeight = mottoFont > 19 ? 700 : 600;
+  });
+  ['#digital', '#digital2'].forEach((id) => {
+    const t = $(id);
+    t.setAttribute('y', yd);
+    t.style.fontSize = digitFont + 'px';
+    t.style.fontWeight = 700;
+  });
+  $('#ticks').style.setProperty('--tick', clamp(0.9 / s, 1.4, 2.6));
+  $('#ticks').style.setProperty('--tick-major', clamp(1.5 / s, 2.4, 4.2));
+  // the glass reflection washes out small text; tone it down on small clocks
+  $('#clockWrap').classList.toggle('tiny-clock', s < 0.7);
+  if (sectorChanged && typeof render === 'function' && document.readyState !== 'loading') render();
+}
+fitText();
+if ('ResizeObserver' in window) new ResizeObserver(fitText).observe($('#dial'));
+else window.addEventListener('resize', fitText);
+
 function sectorPath(frac) {
   if (frac <= 0) return '';
-  const R = R_SECTOR;
+  const R = sectorR;
   if (frac >= 0.99999)
     return `M${CX},${CY - R}A${R},${R} 0 1 1 ${CX},${CY + R}A${R},${R} 0 1 1 ${CX},${CY - R}Z`;
   const [x, y] = polar(frac * 360, R);

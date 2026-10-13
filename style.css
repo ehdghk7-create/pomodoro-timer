@@ -185,17 +185,24 @@ button { font: inherit; color: inherit; }
 body.turning, body.turning .knob-hit { cursor: grabbing; }
 body.turning .knob { filter: brightness(.95); }
 .sector { fill: var(--sector); transition: fill .3s; }
-.ticks line { stroke: var(--green); stroke-width: var(--tick, 1.4); stroke-linecap: round; }
-.ticks line.major { stroke-width: var(--tick-major, 2.4); }
-/* Segoe UI renders digits crisply on Windows; text-rendering keeps glyph shapes exact when scaled */
-.dial text { text-rendering: geometricPrecision; }
-.labels text, .digital { font-family: "Segoe UI Variable Text", "Segoe UI", "Pretendard", system-ui, sans-serif; }
-/* size/weight live on the group so app.js can scale them for small clocks */
-.labels { font-size: 15px; font-weight: 600; }
-.labels text { fill: var(--green); dominant-baseline: central; text-anchor: middle; }
+.ticks line { stroke: var(--green); stroke-width: 1.4; stroke-linecap: round; }
+.ticks line.major { stroke-width: 2.4; }
+.dial text { text-rendering: optimizeLegibility; }
+.digital { font-family: "Segoe UI", "Pretendard", system-ui, sans-serif; }
 .motto { fill: var(--green); font-size: 17px; font-weight: 600; letter-spacing: -.01em; }
 .digital { fill: #1A4F31; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.tiny-clock .glass { opacity: .4; }
+.tiny-clock .glass { opacity: .3; }
+
+/* minute numbers: real HTML text over the dial, whole-pixel size and position (see fitText) */
+.num-layer {
+  position: absolute;
+  inset: 6.5%; /* same box as the SVG dial (the clock's padding) */
+  pointer-events: none;
+  z-index: 1;
+  font: 600 13px "Segoe UI", "Pretendard", system-ui, sans-serif;
+  color: #17482B;
+}
+.num-layer span { position: absolute; line-height: 1; white-space: nowrap; }
 .on-sector text { fill: #FFFFFF; }
 .knob { transition: filter .15s; }
 

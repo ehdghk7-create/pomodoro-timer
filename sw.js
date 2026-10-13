@@ -1,5 +1,5 @@
 ﻿// Offline cache for the app shell
-const CACHE = 'pomo-v7';
+const CACHE = 'pomo-v8';
 const ASSETS = [
   './', './index.html', './style.css', './app.js', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png',
